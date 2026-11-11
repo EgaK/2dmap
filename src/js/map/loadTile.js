@@ -2,6 +2,32 @@ import { VectorTile } from "../pbf/vectortile";
 import Pbf from "../pbf/pbf";
 import style from "./style";
 
+const MAX_CACHE_SIZE = 100; // 端末のスペックに合わせて調整
+const tileCache = new Map();
+
+// タイルの取得（使われたタイルを「最新」の位置に移動する）
+function getTile(key) {
+  if (!tileCache.has(key)) return null;
+
+  const tile = tileCache.get(key);
+  // 一度消して入れ直すことで、Mapの末尾（＝最新）に移動させる
+  tileCache.delete(key);
+  tileCache.set(key, tile);
+  return tile;
+}
+
+// タイルの保存（上限を超えたら一番古いタイルを破棄する）
+function setTile(key, tileData) {
+  if (tileCache.has(key)) {
+    tileCache.delete(key);
+  } else if (tileCache.size >= MAX_CACHE_SIZE) {
+    // keys().next().value で「最も古く挿入されたキー」が取得できる
+    const oldestKey = tileCache.keys().next().value;
+    tileCache.delete(oldestKey);
+  }
+  tileCache.set(key, tileData);
+}
+
 const cache = {};
 
 export default async (zxy) => {
@@ -22,6 +48,7 @@ export default async (zxy) => {
     const layer = layers[name];
     if (!layer) continue;
     // if (name != "w") continue;
+    const path = new Path2D();
     for (var j = 0; j < layer.length; j++) {
       const feature = layer.feature(j);
       const geometry = feature.loadGeometry();
@@ -38,8 +65,17 @@ export default async (zxy) => {
           "c": cat,
         });
       } else {
-        // console.log(geometry.lines);
-        f.push(geometry.lines);
+        for (let i = 0; i < geometry.lines.length; i++) {
+          const ring = geometry.lines[i];
+          if (ring.length == 0) continue;
+          path.moveTo(ring[0][0], ring[0][1]);
+          for (let j = 1; j < ring.length; j++) {
+            path.lineTo(ring[j][0], ring[j][1]);
+          }
+        }
+        if (prop.Type == "f") {
+          path.closePath();
+        }
       }
     }
     if (prop.Type == "p") {
@@ -48,7 +84,7 @@ export default async (zxy) => {
       symbs.push(f);
     } else {
       figs.push({
-        rings: f[0],
+        path: path,
         prop,
       });
     }
