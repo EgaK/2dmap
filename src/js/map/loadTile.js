@@ -35,7 +35,7 @@ export default async (zxy) => {
   if (cache[id]) {
     return cache[id];
   }
-  var d = await fetch("/t/" + zxy.join("/"));
+  var d = await fetch("/t/" + zxy.join("/"), { cache: "force-cache" });
   d = new Pbf(await d.arrayBuffer());
   var layers = new VectorTile(d).layers;
   var figs = [];

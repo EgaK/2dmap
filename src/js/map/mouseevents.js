@@ -3,9 +3,22 @@ import context from "../util/context";
 import { draw } from "./draw";
 import $ from "../util/tiny";
 import { setCenter, setZoom } from "./controller";
+import { delay } from "../util/delay";
+
+const zoomAt = (x, y, z) => {
+  const prevScale = context.scaleZ;
+  setZoom(z);
+  const dx = context.mapWidth / 2 - x;
+  const dy = context.mapHeight / 2 - y;
+  const newX = context.centerX + dx / context.scaleZ - dx / prevScale;
+  const newY = context.centerY + dy / context.scaleZ - dy / prevScale;
+  setCenter(newX, newY);
+};
 
 export default (container) => {
   container = $(container);
+  let tapped;
+  let tx, ty;
 
   container
     .on(
@@ -13,24 +26,12 @@ export default (container) => {
       (e) => {
         e.preventDefault();
 
-        // 基準ズーム(z=10)の「タイル1枚の幅」を現在の画面ピクセル数に換算したスケール
-        const oldScale = context.scaleZ;
-
-        var dz = e.deltaY;
+        let dz = e.deltaY;
         dz = dz > 5 ? 5 : dz < -5 ? -5 : dz;
-        var z = context.zoom - dz / 100;
+        let z = context.zoom - dz / 100;
         z = Math.max(10, Math.min(z, 20));
         if (context.zoom == z) return;
-
-        setZoom(z);
-
-        const dx = context.mapWidth / 2 - e.offsetX;
-        const dy = context.mapHeight / 2 - e.offsetY;
-
-        const x = context.centerX + dx / context.scaleZ - dx / oldScale;
-        const y = context.centerY + dy / context.scaleZ - dy / oldScale;
-
-        setCenter(x, y);
+        zoomAt(e.offsetX, e.offsetY, z);
       },
       { passive: false },
     )
@@ -38,21 +39,86 @@ export default (container) => {
       e.preventDefault();
       const startCenterX = context.centerX;
       const startCenterY = context.centerY;
+      var prevDist;
       const isTouch = (e) => {
         return /^t/.test(e.type);
       };
       const c = isTouch(e) ? e.touches[0] : e;
+      var isGesture = (e) => {
+        return isTouch(e) && e.touches.length > 1;
+      };
+      var dist = (e) => {
+        var touches = e.touches;
+        var x1 = touches[0].clientX;
+        var y1 = touches[0].clientY;
+        var x2 = touches[1].clientX;
+        var y2 = touches[1].clientY;
+        return [
+          Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2),
+          [(x1 + x2) / 2, (y1 + y2) / 2],
+        ];
+      };
+
       const startX = c.clientX;
       const startY = c.clientY;
       const fnc = (e) => {
         e.preventDefault();
-        const c = isTouch(e) ? e.touches[0] : e;
-        const x = startCenterX + (startX - c.clientX) / context.scaleZ;
-        const y = startCenterY + (startY - c.clientY) / context.scaleZ;
-        setCenter(x, y);
+        if (isGesture(e)) {
+          if (prevDist) {
+            var d = prevDist / dist(e)[0];
+            var z = context.zoom + (1 - d) / 3;
+            var x = dist(e)[1][0];
+            var y = dist(e)[1][1];
+            zoomAt(x, y, z);
+          }
+          prevDist = dist(e)[0];
+        } else {
+          const c = isTouch(e) ? e.touches[0] : e;
+          const x = startCenterX + (startX - c.clientX) / context.scaleZ;
+          const y = startCenterY + (startY - c.clientY) / context.scaleZ;
+          setCenter(x, y);
+        }
       };
       container.on("mousemove touchmove", fnc).one("mouseup touchend", () => {
         container.off("mousemove touchmove", fnc);
       });
+    })
+    .on("touchstart", (e) => {
+      if (e.touches.length > 1) {
+        tapped = false;
+        return;
+      }
+      if (!tapped) {
+        tapped = true;
+        tx = e.touches[0].clientX;
+        ty = e.touches[0].clientY;
+        delay(() => {
+          tapped = false;
+        }, 350);
+      } else if (
+        Math.abs((tx - e.touches[0].clientX) * (ty - e.touches[0].clientY)) <
+        100
+      ) {
+        // e.preventDefault();
+        tapped = false;
+        container.fire("dblclick", {
+          detail: [e.touches[0].clientX, e.touches[0].clientY],
+        });
+      }
+    })
+    .on("dblclick", (e) => {
+      let x, y;
+      if (e.detail.length) {
+        x = e.detail[0];
+        y = e.detail[1];
+      } else {
+        x = e.clientX;
+        y = e.clientY;
+      }
+      const rect = container.boundRect();
+      x = x - rect.left;
+      y = y - rect.top;
+      const z = context.zoom + 1;
+      zoomAt(x, y, z);
     });
 };
