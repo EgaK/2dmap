@@ -3,17 +3,6 @@ import indexTemplate from "./template/index.html";
 
 const app = new Hono();
 
-app.get("/t/*", async (c) => {
-  const tile = await c.env.STATICS.fetch(
-    c.req.url.replace("/t/", "/tiles_unzipped/"),
-  );
-  return c.body(tile.body, tile.status, {
-    "Cache-Control": "public, max-age=604800",
-    "Content-Type": "application/x-protobuf",
-    "ETag": tile.headers.get("etag"),
-  });
-});
-
 app.get("*", async (c) => {
   const lastmod = indexTemplate
     .match(/<meta[^>]*revised[^>]*>/)?.[0]
@@ -23,6 +12,8 @@ app.get("*", async (c) => {
     "Content-Type": "text/html; charset=UTF-8",
     "Last-Modified": lastmod,
     "ETag": btoa(lastmod),
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Embedder-Policy": "require-corp",
   });
 });
 

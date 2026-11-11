@@ -4,13 +4,6 @@ import { draw } from "./draw";
 import $ from "../util/tiny";
 import { setCenter, setZoom } from "./controller";
 
-const v = document.getElementById("zoom");
-const view = () => {
-  requestAnimationFrame(view);
-  v.innerText = `zoom: ${context.zoom.toFixed(2)}, x:${context.centerX.toFixed(8)}, y:${context.centerY.toFixed(8)}`;
-};
-// view();
-
 export default (container) => {
   container = $(container);
 
@@ -41,18 +34,25 @@ export default (container) => {
       },
       { passive: false },
     )
-    .on("mousedown", (e) => {
+    .on("mousedown touchstart", (e) => {
+      e.preventDefault();
       const startCenterX = context.centerX;
       const startCenterY = context.centerY;
-      const startX = e.offsetX;
-      const startY = e.offsetY;
+      const isTouch = (e) => {
+        return /^t/.test(e.type);
+      };
+      const c = isTouch(e) ? e.touches[0] : e;
+      const startX = c.clientX;
+      const startY = c.clientY;
       const fnc = (e) => {
-        const x = startCenterX + (startX - e.offsetX) / context.scaleZ;
-        const y = startCenterY + (startY - e.offsetY) / context.scaleZ;
+        e.preventDefault();
+        const c = isTouch(e) ? e.touches[0] : e;
+        const x = startCenterX + (startX - c.clientX) / context.scaleZ;
+        const y = startCenterY + (startY - c.clientY) / context.scaleZ;
         setCenter(x, y);
       };
-      container.on("mousemove", fnc).one("mouseup", () => {
-        container.off("mousemove", fnc);
+      container.on("mousemove touchmove", fnc).one("mouseup touchend", () => {
+        container.off("mousemove touchmove", fnc);
       });
     });
 };

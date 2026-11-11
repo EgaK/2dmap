@@ -14,7 +14,7 @@ const setCenter = (x, y) => {
 const setZoom = (z) => {
   context.zoom = z;
   context.scaleZ = scale(z);
-  $("#zoom").html(z.toFixed(8) + ":" + context.scaleZ.toFixed(8));
+  $("#zoom").html(z.toFixed(8));
   draw();
 };
 
