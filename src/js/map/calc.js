@@ -6,25 +6,44 @@ const scale = (z) => {
   return Math.pow(2, z - baseTileZ) * (tileSizePixels / 2);
 };
 
-const zxy2center = (zxy) => {
-  // const scale = Math.pow(2, zxy[0]);
-  const zoomDiff = zxy[0] - baseTileZ;
-  const shiftedBaseX = baseTileX * Math.pow(2, zoomDiff);
-  const shiftedBaseY = baseTileY * Math.pow(2, zoomDiff);
+const pixToLocalCoord = (x, y, cx, cy, z, w, h) => {
+  const s = scale(z) * 2;
+  x = w / 2 - x;
+  y = h / 2 - y;
+  return [cx - x / s, cy - y / s];
+};
 
-  // 基準タイルから「描画対象のタイル」までの、そのズーム(tileZ)における枚数差（整数）
-  const localTileX = zxy[1] + 0.5 - shiftedBaseX;
-  const localTileY = zxy[2] + 0.5 - shiftedBaseY;
+const coodToTile = (x, y, z) => {
+  z = z >= 16 ? 15 : z >= 13 ? 13 : 10;
+  const s = Math.pow(2, z - baseTileZ);
+  const tileX = ~~((baseTileX + x) * s);
+  const tileY = ~~((baseTileY + y) * s);
+  return [z, tileX, tileY];
+};
 
-  // それを基準ズーム（z=10）のタイル枚数単位の距離にリスケールする（桁落ちしない）
-  const tileScaleFromBase = 1.0 / Math.pow(2, zoomDiff);
-  const tileLocalWorldX = localTileX * tileScaleFromBase;
-  const tileLocalWorldY = localTileY * tileScaleFromBase;
-  return [tileLocalWorldX, tileLocalWorldY];
+const getBounds = (cx, cy, z, w, h) => {
+  return [
+    pixToLocalCoord(0, 0, cx, cy, z, w, h),
+    pixToLocalCoord(w, h, cx, cy, z, w, h),
+  ];
+};
+
+var requiredTiles = (cx, cy, z, w, h) => {
+  var b = getBounds(cx, cy, z, w, h);
+  var nw = coodToTile(...b[0], z);
+  var se = coodToTile(...b[1], z);
+  var ts = [];
+  for (var i = nw[1]; i <= se[1]; i++) {
+    for (var j = nw[2]; j <= se[2]; j++) {
+      ts.push([nw[0], i, j]);
+    }
+  }
+  return ts;
 };
 
 const transformMatrix = (zxy) => {
   const [z, x, y] = zxy;
+  // 現在のズーム値で、z値のタイルの4096の座標を1024の座標に変換する
   const scale = Math.pow(2, context.zoom - z) / 4;
   const s = Math.pow(2, z - baseTileZ);
   const shiftX =
@@ -34,4 +53,4 @@ const transformMatrix = (zxy) => {
 
   return [scale, 0, 0, scale, shiftX, shiftY];
 };
-export { scale, zxy2center, transformMatrix };
+export { scale, transformMatrix, requiredTiles };

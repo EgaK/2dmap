@@ -39,20 +39,20 @@ export default (container) => {
       e.preventDefault();
       const startCenterX = context.centerX;
       const startCenterY = context.centerY;
-      var prevDist;
+      let prevDist;
       const isTouch = (e) => {
         return /^t/.test(e.type);
       };
       const c = isTouch(e) ? e.touches[0] : e;
-      var isGesture = (e) => {
+      const isGesture = (e) => {
         return isTouch(e) && e.touches.length > 1;
       };
       var dist = (e) => {
-        var touches = e.touches;
-        var x1 = touches[0].clientX;
-        var y1 = touches[0].clientY;
-        var x2 = touches[1].clientX;
-        var y2 = touches[1].clientY;
+        const touches = e.touches;
+        const x1 = touches[0].clientX;
+        const y1 = touches[0].clientY;
+        const x2 = touches[1].clientX;
+        const y2 = touches[1].clientY;
         return [
           Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2),
           [(x1 + x2) / 2, (y1 + y2) / 2],
@@ -65,10 +65,10 @@ export default (container) => {
         e.preventDefault();
         if (isGesture(e)) {
           if (prevDist) {
-            var d = prevDist / dist(e)[0];
-            var z = context.zoom + (1 - d) / 3;
-            var x = dist(e)[1][0];
-            var y = dist(e)[1][1];
+            const d = prevDist / dist(e)[0];
+            const z = context.zoom + (1 - d) / 3;
+            const x = dist(e)[1][0];
+            const y = dist(e)[1][1];
             zoomAt(x, y, z);
           }
           prevDist = dist(e)[0];

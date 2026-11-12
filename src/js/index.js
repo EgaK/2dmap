@@ -5,7 +5,13 @@ import context from "./util/context";
 const canvas = $("#a");
 init(canvas[0]);
 
+$("#resize").on("click", (e) => {
+  resize(400, 600);
+});
+$("#resize2").on("click", (e) => {
+  resize(400, 400);
+});
+
 setCenter(1.984375, 1.890625);
 setZoom(15);
 resize(400, 400);
-draw();

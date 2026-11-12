@@ -28,6 +28,7 @@ const resize = (w, h) => {
   });
   canvas[0].width = w * 2;
   canvas[0].height = h * 2;
+  draw();
 };
 
 export { setCenter, setZoom, resize };

@@ -1,6 +1,7 @@
 import context from "../util/context";
-import { scale, transformMatrix } from "./calc";
+import { scale, transformMatrix, requiredTiles } from "./calc";
 import loadTile from "./loadTile";
+import { nextFrame } from "../util/delay";
 
 var ctx;
 
@@ -11,15 +12,24 @@ const init = (canvas) => {
 const t = document.getElementById("time");
 
 const draw = async () => {
+  const cx = context.centerX;
+  const cy = context.centerY;
+  const z = context.zoom;
+  const w = context.mapWidth * 2;
+  const h = context.mapHeight * 2;
+  if (!(cx && cy && z && w && h)) return;
   ctx.fillStyle = "#f5f0ea";
-  ctx.fillRect(0, 0, context.mapWidth * 2, context.mapHeight * 2);
-  const zxy = [15, 28191, 13180];
-  var { figs, signs, symbs } = await loadTile(zxy);
-  requestAnimationFrame(() => {
-    const start = performance.now();
-    paint(figs, zxy);
-    const end = performance.now();
-    t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+  ctx.fillRect(0, 0, w, h);
+  requiredTiles(cx, cy, z, w, h).forEach(async (zxy) => {
+    // console.log("visible tile:", zxy);
+    // const zxy = [15, 28191, 13180];
+    const { figs, signs, symbs } = await loadTile(zxy);
+    nextFrame(() => {
+      const start = performance.now();
+      paint(figs, zxy);
+      const end = performance.now();
+      t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+    });
   });
 };
 
@@ -27,12 +37,23 @@ const paint = (layers, zxy) => {
   ctx.save();
   const mat = transformMatrix(zxy);
   ctx.setTransform(...mat);
+
+  //マスク
+  ctx.beginPath();
+  ctx.rect(0, 0, 4096, 4096);
+  ctx.clip();
+
   for (const layer of layers) {
     var prop = layer.prop;
-    var color = `rgba(${prop.Color} ,1)`;
     var isFill = prop.Type == "f";
     var isBorder = prop.Border;
     var lineWidth = clamp(prop.Width, context.zoom);
+    var opacity = prop.OPacity ? clamp(prop.OPacity, context.zoom) : 1;
+    // if (prop.Layer == "t") {
+    //   console.log("opacity:", opacity);
+    // }
+    var color = `rgba(${prop.Color} ,${opacity})`;
+
     ctx.beginPath();
     if (isBorder) {
       ctx.lineCap = "round";
@@ -47,7 +68,7 @@ const paint = (layers, zxy) => {
     } else {
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.strokeStyle = "#000"; // color;
+      ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth / mat[0];
       ctx.stroke(layer.path);
     }
