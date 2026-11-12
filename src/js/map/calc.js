@@ -13,7 +13,7 @@ const pixToLocalCoord = (x, y, cx, cy, z, w, h) => {
   return [cx - x / s, cy - y / s];
 };
 
-const coodToTile = (x, y, z) => {
+const coordToTile = (x, y, z) => {
   z = z >= 15 ? 15 : z >= 13 ? 13 : 10;
   const s = Math.pow(2, z - baseTileZ);
   const tileX = ~~((baseTileX + x) * s);
@@ -30,8 +30,8 @@ const getBounds = (cx, cy, z, w, h) => {
 
 var requiredTiles = (cx, cy, z, w, h) => {
   var b = getBounds(cx, cy, z, w, h);
-  var nw = coodToTile(...b[0], z);
-  var se = coodToTile(...b[1], z);
+  var nw = coordToTile(...b[0], z);
+  var se = coordToTile(...b[1], z);
   var ts = [];
   for (var i = nw[1]; i <= se[1]; i++) {
     for (var j = nw[2]; j <= se[2]; j++) {
@@ -54,4 +54,6 @@ const transformMatrix = (zxy) => {
   return [scale, 0, 0, scale, shiftX, shiftY];
 };
 
-export { scale, transformMatrix, requiredTiles };
+const latLngToLocalCoord = (lngLat) => {};
+
+export { scale, transformMatrix, requiredTiles, getBounds };

@@ -19,9 +19,10 @@ var SHIFT_LEFT_32 = (1 << 16) * (1 << 16),
   SHIFT_RIGHT_32 = 1 / SHIFT_LEFT_32;
 
 Pbf.prototype = {
-  destroy: function () {
-    this.buf = null;
-  },
+  // egaKコメント化
+  // destroy: function () {
+  //   this.buf = null;
+  // },
 
   // === READING =================================================================
 

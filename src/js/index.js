@@ -12,6 +12,6 @@ $("#resize2").on("click", (e) => {
   resize(400, 400);
 });
 
-setCenter(1.984375, 1.890625);
 setZoom(15);
+setCenter(1.984375, 1.890625);
 resize(400, 400);

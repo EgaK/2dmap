@@ -25,10 +25,15 @@ const draw = async () => {
     // const zxy = [15, 28191, 13180];
     const { figs, signs, symbs } = await loadTile(zxy);
     nextFrame(() => {
-      const start = performance.now();
-      paint(figs, zxy);
-      const end = performance.now();
-      t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+      if (DEVELOP) {
+        const start = performance.now();
+        paint(figs, zxy);
+        const end = performance.now();
+        t.innerText =
+          "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+      } else {
+        paint(figs, zxy);
+      }
     });
   });
 };

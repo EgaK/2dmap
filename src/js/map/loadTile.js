@@ -51,7 +51,7 @@ export default async (zxy) => {
         symbs.push(f);
       } else {
         figs.push({
-          path: path,
+          path,
           prop,
         });
       }

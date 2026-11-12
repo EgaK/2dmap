@@ -1,22 +1,8 @@
 import { scale } from "./calc";
 import context from "../util/context";
-import { draw } from "./draw";
 import $ from "../util/tiny";
-import { setCenter, setZoom } from "./controller";
+import { setCenter, setZoom, zoomAt } from "./controller";
 import { delay } from "../util/delay";
-
-const zoomAt = (x, y, z) => {
-  z = Math.max(10, Math.min(z, 20));
-  if (context.zoom == z) return;
-
-  const prevScale = context.scaleZ;
-  setZoom(z);
-  const dx = context.mapWidth / 2 - x;
-  const dy = context.mapHeight / 2 - y;
-  const newX = context.centerX + dx / context.scaleZ - dx / prevScale;
-  const newY = context.centerY + dy / context.scaleZ - dy / prevScale;
-  setCenter(newX, newY);
-};
 
 export default (container) => {
   container = $(container);

@@ -14,7 +14,7 @@ export class VectorTileFeature {
 
     this.extent = extent;
     /** @type {0 | 1 | 2 | 3} */
-    this.type = 0;
+    this._type = 0;
 
     /** @type {number | undefined} */
     this.id = undefined;
@@ -39,7 +39,7 @@ export class VectorTileFeature {
           this.properties[key] = value;
         }
       } else if (tag === 24)
-        this.type = /** @type {0 | 1 | 2 | 3} */ (pbf.readVarint());
+        this._type = /** @type {0 | 1 | 2 | 3} */ (pbf.readVarint());
       else if (tag === 34) {
         this._geometry = pbf.pos;
         pbf.skip(tag);
@@ -116,8 +116,8 @@ export class VectorTileLayer {
    */
   constructor(pbf, end) {
     // Public
-    this.version = 1;
-    this.name = "";
+    this._version = 1;
+    this._name = "";
     this.extent = 4096;
     this.length = 0;
 
@@ -139,14 +139,14 @@ export class VectorTileLayer {
     if (end === undefined) end = pbf.length;
     while (pbf.pos < end) {
       const tag = pbf.readVarint();
-      if (tag === 10) this.name = pbf.readString();
+      if (tag === 10) this._name = pbf.readString();
       else if (tag === 18) {
         this._features.push(pbf.pos);
         pbf.skip(tag);
       } else if (tag === 26) this._keys.push(pbf.readString());
       else if (tag === 34) this._values.push(readValueMessage(pbf));
       else if (tag === 40) this.extent = pbf.readVarint();
-      else if (tag === 120) this.version = pbf.readVarint();
+      else if (tag === 120) this._version = pbf.readVarint();
       else pbf.skip(tag);
     }
 
@@ -221,7 +221,7 @@ export class VectorTile {
       const tag = pbf.readVarint();
       if (tag === 26) {
         const layer = new VectorTileLayer(pbf, pbf.readVarint() + pbf.pos);
-        if (layer.length) layers[layer.name] = layer;
+        if (layer.length) layers[layer._name] = layer;
       } else pbf.skip(tag);
     }
     this.layers = layers;
