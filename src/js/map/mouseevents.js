@@ -6,6 +6,9 @@ import { setCenter, setZoom } from "./controller";
 import { delay } from "../util/delay";
 
 const zoomAt = (x, y, z) => {
+  z = Math.max(10, Math.min(z, 20));
+  if (context.zoom == z) return;
+
   const prevScale = context.scaleZ;
   setZoom(z);
   const dx = context.mapWidth / 2 - x;
@@ -29,8 +32,6 @@ export default (container) => {
         let dz = e.deltaY;
         dz = dz > 5 ? 5 : dz < -5 ? -5 : dz;
         let z = context.zoom - dz / 100;
-        z = Math.max(10, Math.min(z, 20));
-        if (context.zoom == z) return;
         zoomAt(e.offsetX, e.offsetY, z);
       },
       { passive: false },

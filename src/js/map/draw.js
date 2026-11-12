@@ -47,6 +47,7 @@ const paint = (layers, zxy) => {
     var prop = layer.prop;
     var isFill = prop.Type == "f";
     var isBorder = prop.Border;
+    var dash = prop.Dash || [];
     var lineWidth = clamp(prop.Width, context.zoom);
     var opacity = prop.OPacity ? clamp(prop.OPacity, context.zoom) : 1;
     // if (prop.Layer == "t") {
@@ -66,11 +67,20 @@ const paint = (layers, zxy) => {
       ctx.fillStyle = color;
       ctx.fill(layer.path);
     } else {
+      ctx.setLineDash(dash);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth / mat[0];
       ctx.stroke(layer.path);
+      if (prop.Layer == "t") {
+        ctx.setLineDash([20, 10]);
+        ctx.lineCap = "butt";
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = lineWidth / mat[0] / 2;
+        ctx.stroke(layer.path);
+      }
+      ctx.setLineDash([]);
     }
   }
   ctx.restore();

@@ -14,7 +14,7 @@ const pixToLocalCoord = (x, y, cx, cy, z, w, h) => {
 };
 
 const coodToTile = (x, y, z) => {
-  z = z >= 16 ? 15 : z >= 13 ? 13 : 10;
+  z = z >= 15 ? 15 : z >= 13 ? 13 : 10;
   const s = Math.pow(2, z - baseTileZ);
   const tileX = ~~((baseTileX + x) * s);
   const tileY = ~~((baseTileY + y) * s);
@@ -53,4 +53,5 @@ const transformMatrix = (zxy) => {
 
   return [scale, 0, 0, scale, shiftX, shiftY];
 };
+
 export { scale, transformMatrix, requiredTiles };

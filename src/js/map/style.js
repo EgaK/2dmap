@@ -6,8 +6,8 @@ export default [
     Color: "150,150,150",
     // Color: '969696',
     Width: [
-      [10, 3],
       [15, 5],
+      [20, 30],
     ],
     // Border: 5,
     // Dash: [30, 30],
