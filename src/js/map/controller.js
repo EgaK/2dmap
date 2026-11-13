@@ -1,28 +1,30 @@
 import context from "../util/context";
 import $ from "../util/tiny";
-import { scale, getBounds } from "./calc";
+import { scale, getBounds, isInBounds } from "./calc";
 import { maxBounds } from "../util/constants";
 import { draw } from "./draw";
+import transformDom from "./transformDom";
+import { delay } from "../util/delay";
 
 const setCenter = (x, y) => {
-  const z = context.zoom;
-  const w = context.mapWidth;
-  const h = context.mapHeight;
-  const s = context.scaleZ;
+  const s = context.scale;
+  const hw = context.mapWidth / (2 * s);
+  const hh = context.mapHeight / (2 * s);
 
-  const b = getBounds(x, y, z, w * 2, h * 2);
+  // getBoundsで現在の領域をとってきて比較しても意味ないよ
+  // ちゃんと新しいxyでmaxBounds越えたかどうかを判定する
 
-  if (b[0][0] < maxBounds[0][0]) {
-    x = maxBounds[0][0] + w / (2 * s);
+  if (x - hw < maxBounds[0][0]) {
+    x = maxBounds[0][0] + hw;
   }
-  if (b[1][0] > maxBounds[1][0]) {
-    x = maxBounds[1][0] - w / (2 * s);
+  if (x + hw > maxBounds[1][0]) {
+    x = maxBounds[1][0] - hw;
   }
-  if (b[0][1] < maxBounds[0][1]) {
-    y = maxBounds[0][1] + h / (2 * s);
+  if (y - hh < maxBounds[0][1]) {
+    y = maxBounds[0][1] + hh;
   }
-  if (b[1][1] > maxBounds[1][1]) {
-    y = maxBounds[1][1] - h / (2 * s);
+  if (y + hh > maxBounds[1][1]) {
+    y = maxBounds[1][1] - hh;
   }
   if (context.centerX == x && context.centerY == y) return;
   context.centerX = x;
@@ -38,14 +40,15 @@ const setZoom = (z) => {
   z = Math.max(10, Math.min(z, 20));
   if (context.zoom == z) return;
   context.zoom = z;
-  context.scaleZ = scale(z);
+  context.scale = scale(z);
   if (DEVELOP) {
     $("#zoom").html(z.toFixed(8));
   }
   draw();
 };
 
-const resize = (w, h) => {
+const resized = (h) => {
+  const w = $("#m").boundRect().width;
   context.mapWidth = w;
   context.mapHeight = h;
   const canvas = $("#a");
@@ -59,13 +62,51 @@ const resize = (w, h) => {
 };
 
 const zoomAt = (x, y, z) => {
-  const prevScale = context.scaleZ;
+  const prevScale = context.scale;
   setZoom(z);
   const dx = context.mapWidth / 2 - x;
   const dy = context.mapHeight / 2 - y;
-  const newX = context.centerX + dx / context.scaleZ - dx / prevScale;
-  const newY = context.centerY + dy / context.scaleZ - dy / prevScale;
+  const newX = context.centerX + dx / context.scale - dx / prevScale;
+  const newY = context.centerY + dy / context.scale - dy / prevScale;
   setCenter(newX, newY);
 };
 
-export { setCenter, setZoom, resize, zoomAt };
+var panID;
+const panTo = (x, y) => {
+  const b = maxBounds;
+  if (x < b[0][0] || x > b[1][0] || y < b[0][1] || y > b[1][1]) {
+    return;
+  }
+
+  clearTimeout(panID);
+  let dx = -(x - context.centerX) * context.scale;
+  let dy = -(y - context.centerY) * context.scale;
+  const target = $("#a, #tP");
+
+  if (isInBounds(x, y)) {
+    transformDom(target, dx, dy, 1, ".5s");
+    panID = delay(() => {
+      setCenter(x, y);
+      draw();
+      transformDom(target);
+    }, 500);
+  } else {
+    const ratio = dx / dy;
+    dx = Math.abs(ratio) > 1 ? context.mapWidth : context.mapWidth * ratio;
+    dy = Math.abs(ratio) < 1 ? context.mapHeight : context.mapHeight * ratio;
+    transformDom(target, dx, dy, 1, ".5s ease-in");
+    panID = delay(() => {
+      setCenter(x, y);
+      draw();
+      transformDom(target, -dx, -dy, 1, "");
+      delay(() => {
+        transformDom(target, 0, 0, 1, ".5s ease-out");
+      }, 20);
+      panID = delay(() => {
+        transformDom(target);
+      }, 500);
+    }, 500);
+  }
+};
+
+export { setCenter, setZoom, resized, zoomAt, panTo };

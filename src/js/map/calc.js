@@ -6,14 +6,29 @@ const scale = (z) => {
   return Math.pow(2, z - baseTileZ) * (tileSizePixels / 2);
 };
 
-const pixToLocalCoord = (x, y, cx, cy, z, w, h) => {
-  const s = scale(z) * 2;
+const pixToLocalCoord = (x, y) => {
+  const cx = context.centerX;
+  const cy = context.centerY;
+  const w = context.mapWidth;
+  const h = context.mapHeight;
+  const s = context.scale;
   x = w / 2 - x;
   y = h / 2 - y;
   return [cx - x / s, cy - y / s];
 };
 
-const coordToTile = (x, y, z) => {
+const localCoordToPix = (x, y) => {
+  const cx = context.centerX;
+  const cy = context.centerY;
+  const w = context.mapWidth;
+  const h = context.mapHeight;
+  const s = context.scale;
+  x = (x - cx) * s + w / 2;
+  y = (y - cy) * s + h / 2;
+  return [x, y];
+};
+
+const localCoordToTile = (x, y, z) => {
   z = z >= 15 ? 15 : z >= 13 ? 13 : 10;
   const s = Math.pow(2, z - baseTileZ);
   const tileX = ~~((baseTileX + x) * s);
@@ -21,20 +36,27 @@ const coordToTile = (x, y, z) => {
   return [z, tileX, tileY];
 };
 
-const getBounds = (cx, cy, z, w, h) => {
-  return [
-    pixToLocalCoord(0, 0, cx, cy, z, w, h),
-    pixToLocalCoord(w, h, cx, cy, z, w, h),
-  ];
+const getBounds = () => {
+  const w = context.mapWidth;
+  const h = context.mapHeight;
+
+  return [pixToLocalCoord(0, 0), pixToLocalCoord(w, h)];
 };
 
-var requiredTiles = (cx, cy, z, w, h) => {
-  var b = getBounds(cx, cy, z, w, h);
-  var nw = coordToTile(...b[0], z);
-  var se = coordToTile(...b[1], z);
-  var ts = [];
-  for (var i = nw[1]; i <= se[1]; i++) {
-    for (var j = nw[2]; j <= se[2]; j++) {
+var isInBounds = (x, y) => {
+  var b = getBounds();
+  return x > b[0][0] && x < b[1][0] && y > b[0][1] && y < b[1][1];
+};
+
+const requiredTiles = () => {
+  const z = context.zoom;
+
+  const b = getBounds();
+  const nw = localCoordToTile(...b[0], z);
+  const se = localCoordToTile(...b[1], z);
+  const ts = [];
+  for (let i = nw[1]; i <= se[1]; i++) {
+    for (let j = nw[2]; j <= se[2]; j++) {
       ts.push([nw[0], i, j]);
     }
   }
@@ -54,6 +76,40 @@ const transformMatrix = (zxy) => {
   return [scale, 0, 0, scale, shiftX, shiftY];
 };
 
-const latLngToLocalCoord = (lngLat) => {};
+const n = 1024; // Math.pow(2, baseTileZ);
 
-export { scale, transformMatrix, requiredTiles, getBounds };
+const latLngToLocalCoord = (lngLat) => {
+  const [lng, lat] = lngLat;
+  const latRad = (lat * Math.PI) / 180;
+
+  const worldTileX = ((lng + 180) / 360) * n;
+  const worldTileY =
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n;
+  const x = worldTileX - baseTileX;
+  const y = worldTileY - baseTileY;
+  return [x, y];
+};
+
+const localCoordToLngLat = (x, y) => {
+  const worldTileX = baseTileX + x;
+  const worldTileY = baseTileY + y;
+
+  // 経度・緯度へ逆変換
+  const lng = (worldTileX / n) * 360 - 180;
+  const latRad = Math.atan(Math.sinh(Math.PI * (1 - (2 * worldTileY) / n)));
+  const lat = (latRad * 180) / Math.PI;
+
+  return [lng, lat];
+};
+
+export {
+  scale,
+  transformMatrix,
+  requiredTiles,
+  getBounds,
+  isInBounds,
+  latLngToLocalCoord,
+  localCoordToLngLat,
+  pixToLocalCoord,
+  localCoordToPix,
+};

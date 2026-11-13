@@ -61,8 +61,8 @@ export default (container) => {
           prevDist = dist(e)[0];
         } else {
           const c = isTouch(e) ? e.touches[0] : e;
-          const x = startCenterX + (startX - c.clientX) / context.scaleZ;
-          const y = startCenterY + (startY - c.clientY) / context.scaleZ;
+          const x = startCenterX + (startX - c.clientX) / context.scale;
+          const y = startCenterY + (startY - c.clientY) / context.scale;
           setCenter(x, y);
         }
       };

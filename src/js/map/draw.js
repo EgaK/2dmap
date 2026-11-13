@@ -46,6 +46,9 @@ const paint = (layers, zxy) => {
   //マスク
   ctx.beginPath();
   ctx.rect(0, 0, 4096, 4096);
+  // ctx.strokeStyle = "#f00";
+  // ctx.lineWidth = 10 / mat[0];
+  // ctx.stroke();
   ctx.clip();
 
   for (const layer of layers) {

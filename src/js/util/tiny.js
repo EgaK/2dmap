@@ -59,11 +59,17 @@ Tiny.prototype.boundRect = function () {
 };
 
 Tiny.prototype.css = function (obj) {
-  return this.each((elem) => {
-    for (var name in obj) {
-      elem.style[name] = obj[name];
-    }
-  });
+  var elems = this;
+  return !isString(obj)
+    ? elems.each((elem) => {
+        for (var name in obj) {
+          elem.style[name] = obj[name];
+        }
+      })
+    : elems[0]
+      ? (elems[0].currentStyle ||
+          document.defaultView.getComputedStyle(elems[0], ""))[obj]
+      : "";
 };
 
 Tiny.prototype.html = function (htm) {
