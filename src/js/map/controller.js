@@ -71,7 +71,7 @@ const zoomAt = (x, y, z) => {
   setCenter(newX, newY);
 };
 
-var panID;
+let panID;
 const panTo = (x, y) => {
   const b = maxBounds;
   if (x < b[0][0] || x > b[1][0] || y < b[0][1] || y > b[1][1]) {
@@ -94,18 +94,18 @@ const panTo = (x, y) => {
     const ratio = dx / dy;
     dx = Math.abs(ratio) > 1 ? context.mapWidth : context.mapWidth * ratio;
     dy = Math.abs(ratio) < 1 ? context.mapHeight : context.mapHeight * ratio;
-    transformDom(target, dx, dy, 1, ".5s ease-in");
+    transformDom(target, dx, dy, 1, ".3s ease-in");
     panID = delay(() => {
       setCenter(x, y);
       draw();
       transformDom(target, -dx, -dy, 1, "");
       delay(() => {
-        transformDom(target, 0, 0, 1, ".5s ease-out");
+        transformDom(target, 0, 0, 1, ".3s ease-out");
       }, 20);
       panID = delay(() => {
         transformDom(target);
-      }, 500);
-    }, 500);
+      }, 300);
+    }, 300);
   }
 };
 

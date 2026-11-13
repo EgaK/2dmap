@@ -1,7 +1,13 @@
 import context from "../util/context";
-import { scale, transformMatrix, requiredTiles } from "./calc";
+import {
+  scale,
+  transformMatrix,
+  transformMatrixCSS,
+  requiredTiles,
+} from "./calc";
 import loadTile from "./loadTile";
 import { nextFrame } from "../util/delay";
+import $ from "../util/tiny";
 
 var ctx;
 
@@ -23,11 +29,23 @@ const draw = async () => {
   requiredTiles(cx, cy, z, w, h).forEach(async (zxy) => {
     // console.log("visible tile:", zxy);
     // const zxy = [15, 28191, 13180];
-    const { figs, signs, symbs } = await loadTile(zxy);
+    let { figs, div, symbs } = await loadTile(zxy);
     nextFrame(() => {
       if (DEVELOP) {
         const start = performance.now();
-        paint(figs, zxy);
+        const mat = transformMatrix(zxy);
+        console.log("div:", div);
+        paint(figs, mat);
+        if (!$("#sign" + zxy.join("_")).length) {
+          $("#tP").Append(div);
+        } else {
+          div = $("#sign" + zxy.join("_"));
+        }
+        const cssmat = transformMatrixCSS(zxy);
+        div.css({
+          "transform": `matrix(${cssmat.join(",")})`,
+          "fontSize": 16 / cssmat[0] + "px",
+        });
         const end = performance.now();
         t.innerText =
           "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
@@ -38,9 +56,8 @@ const draw = async () => {
   });
 };
 
-const paint = (layers, zxy) => {
+const paint = (layers, mat) => {
   ctx.save();
-  const mat = transformMatrix(zxy);
   ctx.setTransform(...mat);
 
   //マスク
@@ -52,16 +69,16 @@ const paint = (layers, zxy) => {
   ctx.clip();
 
   for (const layer of layers) {
-    var prop = layer.prop;
-    var isFill = prop.Type == "f";
-    var isBorder = prop.Border;
-    var dash = prop.Dash || [];
-    var lineWidth = clamp(prop.Width, context.zoom);
-    var opacity = prop.OPacity ? clamp(prop.OPacity, context.zoom) : 1;
+    const prop = layer.prop;
+    const isFill = prop.Type == "f";
+    const isBorder = prop.Border;
+    const dash = prop.Dash || [];
+    const lineWidth = clamp(prop.Width, context.zoom);
+    const opacity = prop.OPacity ? clamp(prop.OPacity, context.zoom) : 1;
     // if (prop.Layer == "t") {
     //   console.log("opacity:", opacity);
     // }
-    var color = `rgba(${prop.Color} ,${opacity})`;
+    const color = `rgba(${prop.Color} ,${opacity})`;
 
     ctx.beginPath();
     if (isBorder) {
@@ -99,8 +116,8 @@ const clamp = (ary, x, b) => {
   if (!Array.isArray(ary)) {
     return ary;
   }
-  var z;
-  for (var i = 0; i < ary.length; i++) {
+  let z;
+  for (let i = 0; i < ary.length; i++) {
     if (x <= ary[i][0]) {
       if (i == 0) {
         return ary[i][1] + b;

@@ -2,8 +2,8 @@ import Pbf from "../pbf/pbf";
 
 const MAX_CACHE_SIZE = 100; // 端末のスペックに合わせて調整
 
-var memo = new Map();
-var que = {};
+const memo = new Map();
+const que = {};
 
 export default (url, fnc, isJSON, force) => {
   return new Promise(async (resolve, reject) => {
@@ -25,14 +25,14 @@ export default (url, fnc, isJSON, force) => {
     } else {
       que[url] = [[resolve, reject]];
     }
-    var d = await fetch(url);
+    let d = await fetch(url);
     if (d.ok) {
       d = isJSON ? await d.json() : new Pbf(await d.arrayBuffer());
       d = fnc ? fnc(d) : d;
       memo.set(url, d);
-      for (var [resolver] of que[url]) resolver(d);
+      for (const [resolver] of que[url]) resolver(d);
     } else {
-      for (var [, rejector] of que[url]) rejector();
+      for (const [, rejector] of que[url]) rejector();
     }
     delete que[url];
   });

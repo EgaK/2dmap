@@ -43,8 +43,8 @@ const getBounds = () => {
   return [pixToLocalCoord(0, 0), pixToLocalCoord(w, h)];
 };
 
-var isInBounds = (x, y) => {
-  var b = getBounds();
+const isInBounds = (x, y) => {
+  const b = getBounds();
   return x > b[0][0] && x < b[1][0] && y > b[0][1] && y < b[1][1];
 };
 
@@ -72,6 +72,21 @@ const transformMatrix = (zxy) => {
     context.mapWidth - ((baseTileX + context.centerX) * s - x) * 4096 * scale;
   const shiftY =
     context.mapHeight - ((baseTileY + context.centerY) * s - y) * 4096 * scale;
+
+  return [scale, 0, 0, scale, shiftX, shiftY];
+};
+
+const transformMatrixCSS = (zxy) => {
+  const [z, x, y] = zxy;
+  // 現在のズーム値で、z値のタイルの4096の座標を512の座標に変換する
+  const scale = Math.pow(2, context.zoom - z) / 8;
+  const s = Math.pow(2, z - baseTileZ);
+  const shiftX =
+    context.mapWidth / 2 -
+    ((baseTileX + context.centerX) * s - x) * 4096 * scale;
+  const shiftY =
+    context.mapHeight / 2 -
+    ((baseTileY + context.centerY) * s - y) * 4096 * scale;
 
   return [scale, 0, 0, scale, shiftX, shiftY];
 };
@@ -105,6 +120,7 @@ const localCoordToLngLat = (x, y) => {
 export {
   scale,
   transformMatrix,
+  transformMatrixCSS,
   requiredTiles,
   getBounds,
   isInBounds,

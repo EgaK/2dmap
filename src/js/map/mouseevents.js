@@ -34,7 +34,7 @@ export default (container) => {
       const isGesture = (e) => {
         return isTouch(e) && e.touches.length > 1;
       };
-      var dist = (e) => {
+      const dist = (e) => {
         const touches = e.touches;
         const x1 = touches[0].clientX;
         const y1 = touches[0].clientY;

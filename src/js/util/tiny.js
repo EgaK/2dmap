@@ -1,10 +1,10 @@
-var isString = (obj) => (typeof obj)[0] == "s";
+const isString = (obj) => (typeof obj)[0] == "s";
 function Tiny() {}
 
-var $ = (selector) => {
+const $ = (selector) => {
   if (isString(selector)) {
     if (selector[0] == "<") {
-      var container = document.createElement("div");
+      const container = document.createElement("div");
       container.innerHTML = selector;
       selector = container.childNodes;
     } else {
@@ -13,7 +13,7 @@ var $ = (selector) => {
   } else {
     selector = selector[Symbol.iterator] ? selector : [selector];
   }
-  var tiny = new Tiny();
+  const tiny = new Tiny();
   [].push.apply(tiny, selector);
   return tiny;
 };
@@ -35,8 +35,8 @@ Tiny.prototype.off = function (events, func, opt) {
 };
 
 Tiny.prototype.one = function (event, func) {
-  var elems = this;
-  var once = (e) => {
+  const elems = this;
+  const once = (e) => {
     func(e);
     elems.off(event, once);
   };
@@ -59,10 +59,10 @@ Tiny.prototype.boundRect = function () {
 };
 
 Tiny.prototype.css = function (obj) {
-  var elems = this;
+  const elems = this;
   return !isString(obj)
     ? elems.each((elem) => {
-        for (var name in obj) {
+        for (const name in obj) {
           elem.style[name] = obj[name];
         }
       })
@@ -73,7 +73,7 @@ Tiny.prototype.css = function (obj) {
 };
 
 Tiny.prototype.html = function (htm) {
-  var elems = this;
+  const elems = this;
   return htm != undefined
     ? elems.each((elem) => {
         elem.innerHTML = htm;
@@ -125,10 +125,10 @@ Tiny.prototype.Remove = function () {
 };
 
 Tiny.prototype.attr = function (obj) {
-  var elems = this;
+  const elems = this;
   return !isString(obj)
     ? elems.each((elem) => {
-        for (var name in obj) {
+        for (const name in obj) {
           elem.setAttribute(name, obj[name]);
         }
       })
@@ -139,8 +139,8 @@ Tiny.prototype.attr = function (obj) {
 
 Tiny.prototype.isChildOf = function (sel) {
   // forでまわしてるのは、途中で抜けるため
-  for (var i = this.length; i--;) {
-    var target = this[i];
+  for (let i = this.length; i--;) {
+    let target = this[i];
     while (target && target.nodeType == 1) {
       if (target.matches(sel)) {
         return $(target);
