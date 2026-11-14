@@ -1,10 +1,5 @@
 import context from "../util/context";
-import {
-  scale,
-  transformMatrix,
-  transformMatrixCSS,
-  requiredTiles,
-} from "./calc";
+import { scale, transformMatrix, requiredTiles } from "./calc";
 import loadTile from "./loadTile";
 import { nextFrame } from "../util/delay";
 import $ from "../util/tiny";
@@ -16,7 +11,6 @@ const init = (canvas) => {
 };
 
 const t = document.getElementById("time");
-
 const draw = async () => {
   const cx = context.centerX;
   const cy = context.centerY;
@@ -26,26 +20,31 @@ const draw = async () => {
   if (!(cx && cy && z && w && h)) return;
   ctx.fillStyle = "#f5f0ea";
   ctx.fillRect(0, 0, w, h);
-  requiredTiles(cx, cy, z, w, h).forEach(async (zxy) => {
-    // console.log("visible tile:", zxy);
-    // const zxy = [15, 28191, 13180];
+  const tiles = requiredTiles(cx, cy, z, w, h);
+  const keys = tiles.map((t) => "sign" + t.join("_"));
+  $("#tP")[0].childNodes.forEach((n) => {
+    if (!keys.includes(n.id)) {
+      $(n).Remove();
+    }
+  });
+  tiles.forEach(async (zxy) => {
     let { figs, div, symbs } = await loadTile(zxy);
     nextFrame(() => {
       if (DEVELOP) {
         const start = performance.now();
         const mat = transformMatrix(zxy);
-        console.log("div:", div);
         paint(figs, mat);
-        if (!$("#sign" + zxy.join("_")).length) {
+        const id = "#sign" + zxy.join("_");
+        if (!$(id).length) {
           $("#tP").Append(div);
         } else {
-          div = $("#sign" + zxy.join("_"));
+          div = $(id);
         }
-        const cssmat = transformMatrixCSS(zxy);
+        const cssmat = transformMatrix(zxy, 1);
         div.css({
           "transform": `matrix(${cssmat.join(",")})`,
-          "fontSize": 16 / cssmat[0] + "px",
         });
+        $(id + " .sign").css({ "transform": `scale(${1 / cssmat[0]})` });
         const end = performance.now();
         t.innerText =
           "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";

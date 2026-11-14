@@ -63,7 +63,7 @@ Tiny.prototype.css = function (obj) {
   return !isString(obj)
     ? elems.each((elem) => {
         for (const name in obj) {
-          elem.style[name] = obj[name];
+          elem.style.setProperty(name, obj[name]);
         }
       })
     : elems[0]

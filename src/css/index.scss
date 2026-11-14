@@ -47,13 +47,16 @@ body {
 }
 
 #m {
-    display: flex;
-    justify-content: center; /* 左右の中央 */
-    align-items: center; /* 上下の中央 */
+    // display: flex;
+    // justify-content: center; /* 左右の中央 */
+    // align-items: center; /* 上下の中央 */
     width: 100%;
     height: 400px; /* 親の高さが必要 */
     overflow: hidden;
     border: 1px solid #000;
+}
+#a {
+    position: absolute;
 }
 #x {
     position: absolute;
@@ -83,7 +86,13 @@ svg:not(.o),
     stroke: #ffa725;
 }
 
+#tP {
+    // display: none;
+}
+
 .signs,
 .sign {
     position: absolute;
+    pointer-events: none;
+    user-select: none;
 }

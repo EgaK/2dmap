@@ -10,6 +10,13 @@ export default async (zxy) => {
     const signs = [];
     const symbs = [];
     const div = $(`<div id="sign${zxy.join("_")}" class="signs">`);
+
+    // const sign = $(`<span class="sign">テストポイント</span>`).css({
+    //   "left": "0px",
+    //   "top": "0px",
+    // });
+    // div.Append(sign);
+
     for (let i = style.length; i--;) {
       const f = [];
       const prop = style[i];
