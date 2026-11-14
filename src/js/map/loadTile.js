@@ -36,7 +36,7 @@ export default async (zxy) => {
           // }
           if (prop.Type == "p") {
             const sign = $(
-              `<span class="sign">${feature.properties["n"]}</span>`,
+              `<span class="sign ${prop.Layer}">${feature.properties["n"]}</span>`,
             ).css({
               "left": geometry.lines[0][0][0] + "px",
               "top": geometry.lines[0][0][1] + "px",

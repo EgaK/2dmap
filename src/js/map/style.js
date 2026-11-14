@@ -137,10 +137,10 @@ export default [
     Type: "p",
     Layer: "c",
     // text: "name",
-    Color: "102,102,102",
+    // Color: "102,102,102",
     // Color: '666666',
-    Size: 14,
-    Padding: 10,
+    // Size: 14,
+    // Padding: 10,
     // Css: {
     // 	"border-radius": "4px",
     // 	"background": "rgba(255,255,255,.5)",
@@ -149,39 +149,19 @@ export default [
     // 	"color": "#333",
     // }
   },
-  {
-    // 道路の文字
-    Type: "p",
-    Layer: "rt",
-    // Color: "#fff",
-    Size: 12,
-    // text: "ref", //属性はnに統一
-    // Padding: 10,
-    // OPacity: [
-    // 	[14, 0],
-    // 	[14, 1],
-    // ],
-    Css: {
-      "border": "1px solid #fff",
-      "border-radius": "4px 4px 50% 50%",
-      "background": "#06a",
-      "padding": "5px",
-      "color": "#fff",
-    },
-  },
 
   {
     Type: "p",
     Layer: "d",
     // text: "name",
-    Color: "102,102,102",
+    // Color: "102,102,102",
     // Color: '666666',
-    Size: 12,
+    // Size: 12,
     // Padding: 10,
-    OPacity: [
-      [13, 0],
-      [14, 1],
-    ],
+    // OPacity: [
+    //   [13, 0],
+    //   [14, 1],
+    // ],
   },
   {
     Type: "s",
@@ -191,6 +171,19 @@ export default [
     // cat: "Type",  cに変更
     // Color: '102,102,102',
     // Size: 13,
+  },
+  {
+    // 道路の文字
+    Type: "p",
+    Layer: "rt",
+    // Color: "#fff",
+    // Size: 12,
+    // text: "ref", //属性はnに統一
+    // Padding: 10,
+    // OPacity: [
+    // 	[14, 0],
+    // 	[14, 1],
+    // ],
   },
 
   // { // 水域
