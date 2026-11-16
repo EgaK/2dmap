@@ -46,15 +46,16 @@ export default async (zxy) => {
           }
           const pathd = pinPath[cat] || pinOtherPath;
           const dom = $(
-            `<span class="symb"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></span>`,
-            // `<span class="symb"><img src="/logo96.png" width="24" height="24"></span>`,
+            `<button class="symb" popovertarget="iw"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></button>`,
           )
             .css({
               "left": pointCoord[0] + "px",
               "top": pointCoord[1] + "px",
             })
             .on("click", (e) => {
-              console.log("txt", name, desc);
+              const content =
+                "<h3>" + name + "</h3>" + (desc ? "<p>" + desc + "</p>" : "");
+              $("#iw").html(content);
             });
           symbs.Append(dom);
           //   .on("click", (e) => {
