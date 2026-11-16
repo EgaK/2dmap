@@ -8,8 +8,9 @@ export default async (zxy) => {
   return load("/t/" + zxy.join("/"), (d) => {
     const layers = new VectorTile(d).layers;
     const figs = [];
-    const addrs = $(`<div id="addrs${zxy.join("")}" class="addrs">`);
-    const symbs = $(`<div id="symbs${zxy.join("")}" class="symbs">`);
+    const key = zxy.join("");
+    const addrs = $(`<div id="addrs${key}" class="addrs">`);
+    const symbs = $(`<div id="symbs${key}" class="symbs">`);
     const roadSigns = {};
     for (let i = style.length; i--;) {
       const prop = style[i];
@@ -22,6 +23,7 @@ export default async (zxy) => {
         const geometry = feature.loadGeometry();
         const name = feature.properties["n"];
         const pointCoord = geometry.lines[0][0];
+        const [x, y] = pointCoord;
         if (prop.Type == "p") {
           if (layerName == "rt") {
             if (roadSigns[name]) {
@@ -33,8 +35,8 @@ export default async (zxy) => {
             const dom = $(
               `<span class="addr ${prop.Layer}">${name}</span>`,
             ).css({
-              "left": pointCoord[0] + "px",
-              "top": pointCoord[1] + "px",
+              "left": x + "px",
+              "top": y + "px",
             });
             addrs.Append(dom);
           }
@@ -44,25 +46,24 @@ export default async (zxy) => {
           if (cat == "bs" && desc) {
             desc = desc.replace("S", "西肥バス").replace("W", "昭和バス");
           }
+          if (cat == "hp" && desc) {
+            desc = desc.replace(/\s/g, "科 ");
+          }
           const pathd = pinPath[cat] || pinOtherPath;
           const dom = $(
-            `<button class="symb" popovertarget="iw"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></button>`,
+            `<button class="symb"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></button>`,
           )
             .css({
-              "left": pointCoord[0] + "px",
-              "top": pointCoord[1] + "px",
+              "left": x + "px",
+              "top": y + "px",
             })
             .on("click", (e) => {
               const content =
                 "<h3>" + name + "</h3>" + (desc ? "<p>" + desc + "</p>" : "");
               $("#iw").html(content);
+              $("#iw")[0].showPopover({ source: e.target });
             });
           symbs.Append(dom);
-          //   .on("click", (e) => {
-          //   var txt =
-          //     "<h3>" + t.txt + "</h3>" + (t.desc ? "<p>" + t.desc + "</p>" : "");
-          //   infowin($(e.target), txt);
-          // });
         } else {
           for (let i = 0; i < geometry.lines.length; i++) {
             const ring = geometry.lines[i];

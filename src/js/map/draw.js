@@ -158,8 +158,8 @@ const paint = (layers, mat) => {
 
     ctx.beginPath();
     if (isBorder) {
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+      // ctx.lineCap = "round";
+      // ctx.lineJoin = "round";
       ctx.strokeStyle = "#aaa";
       ctx.lineWidth = 1 / mat[0];
       ctx.stroke(layer.path);
