@@ -86,24 +86,18 @@ svg:not(.o),
     stroke: #ffa725;
 }
 
-.signs,
-.sign,
-.symbs,
-.symb {
+.addrs,
+.addr,
+.rt {
     position: absolute;
-    // pointer-events: none;
-    // user-select: none;  //テスト時のみ選択できるようにコメントアウト
+    pointer-events: none;
+    user-select: none; //テスト時のみ選択できるようにコメントアウト
 }
 
-.sign {
-    content-visibility: auto;
-    &.rt {
-        border: 1px solid #fff;
-        border-radius: 4px 4px 50% 50%;
-        background: #06a;
-        padding: 5px;
-        color: #fff;
-    }
+.addr {
+    transform-origin: 0 0;
+    // content-visibility: auto;
+    // display: none;
     &.d,
     &.c {
         color: #333;
@@ -117,6 +111,15 @@ svg:not(.o),
     }
 }
 
+.rt {
+    border: 1px solid #fff;
+    border-radius: 4px 4px 50% 50%;
+    background: #06a;
+    padding: 5px;
+    color: #fff;
+}
+
+.symbs,
 .symb {
-    content-visibility: auto;
+    position: absolute;
 }

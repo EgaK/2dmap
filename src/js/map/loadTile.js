@@ -2,57 +2,59 @@ import { VectorTile } from "../pbf/vectortile";
 import load from "../util/load";
 import style from "./style";
 import $ from "../util/tiny";
-import { pin, pinOther } from "../util/constants";
+import { pinPath, pinOtherPath } from "../util/constants";
 
 export default async (zxy) => {
   return load("/t/" + zxy.join("/"), (d) => {
     const layers = new VectorTile(d).layers;
     const figs = [];
-    const signs = $(`<div id="signs${zxy.join("_")}" class="signs">`);
-    const symbs = $(`<div id="symbs${zxy.join("_")}" class="symbs">`);
-
-    // const sign = $(`<span class="sign">テストポイント</span>`).css({
-    //   "left": "0px",
-    //   "top": "0px",
-    // });
-    // div.Append(sign);
-
+    const addrs = $(`<div id="addrs${zxy.join("")}" class="addrs">`);
+    const symbs = $(`<div id="symbs${zxy.join("")}" class="symbs">`);
+    const roadSigns = {};
     for (let i = style.length; i--;) {
-      const f = [];
       const prop = style[i];
-      const name = prop.Layer;
-      const layer = layers[name];
+      const layerName = prop.Layer;
+      const layer = layers[layerName];
       if (!layer) continue;
-      // if (name != "w") continue;
       const path = new Path2D();
       for (let j = 0; j < layer.length; j++) {
         const feature = layer.feature(j);
         const geometry = feature.loadGeometry();
+        const name = feature.properties["n"];
+        const pointCoord = geometry.lines[0][0];
         if (prop.Type == "p") {
-          const dom = $(
-            `<span class="sign ${prop.Layer}">${feature.properties["n"]}</span>`,
-          ).css({
-            "left": geometry.lines[0][0][0] + "px",
-            "top": geometry.lines[0][0][1] + "px",
-          });
-          signs.Append(dom);
+          if (layerName == "rt") {
+            if (roadSigns[name]) {
+              roadSigns[name].push(pointCoord);
+            } else {
+              roadSigns[name] = [pointCoord];
+            }
+          } else {
+            const dom = $(
+              `<span class="addr ${prop.Layer}">${name}</span>`,
+            ).css({
+              "left": pointCoord[0] + "px",
+              "top": pointCoord[1] + "px",
+            });
+            addrs.Append(dom);
+          }
         } else if (prop.Type == "s") {
           const cat = geometry.properties["c"];
           let desc = geometry.properties["t"];
           if (cat == "bs" && desc) {
             desc = desc.replace("S", "西肥バス").replace("W", "昭和バス");
           }
-          const pathd = pin[cat] || pinOther;
+          const pathd = pinPath[cat] || pinOtherPath;
           const dom = $(
             `<span class="symb"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></span>`,
             // `<span class="symb"><img src="/logo96.png" width="24" height="24"></span>`,
           )
             .css({
-              "left": geometry.lines[0][0][0] + "px",
-              "top": geometry.lines[0][0][1] + "px",
+              "left": pointCoord[0] + "px",
+              "top": pointCoord[1] + "px",
             })
             .on("click", (e) => {
-              console.log("txt", feature.properties["n"], desc);
+              console.log("txt", name, desc);
             });
           symbs.Append(dom);
           //   .on("click", (e) => {
@@ -82,7 +84,8 @@ export default async (zxy) => {
       }
     }
     return {
-      signs,
+      addrs,
+      roadSigns,
       symbs,
       figs,
     };

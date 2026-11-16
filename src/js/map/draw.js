@@ -10,13 +10,13 @@ const init = (canvas) => {
   ctx = canvas.getContext("2d", { alpha: false });
 };
 
-let timerID = 0;
+// let timerID = 0;
 const t = document.getElementById("time");
 const draw = async () => {
-  if (timerID) return;
-  delay(() => {
-    timerID = 0;
-  }, 17);
+  // if (timerID) return;
+  // delay(() => {
+  //   timerID = 0;
+  // }, 17);
 
   const cx = context.centerX;
   const cy = context.centerY;
@@ -25,67 +25,108 @@ const draw = async () => {
   const h = context.mapHeight * 2;
   if (!(cx && cy && z && w && h)) return;
 
-  timerID = 1;
+  // timerID = 1;
 
   ctx.fillStyle = "#f5f0ea";
   ctx.fillRect(0, 0, w, h);
   const tiles = requiredTiles(cx, cy, z, w, h);
-  const keys = tiles.map((t) => "sign" + t.join("_"));
+  const ids = tiles.map((zxy) => zxy.join(""));
   const nearests = {};
-  $("#tP")[0].childNodes.forEach((n) => {
-    if (!keys.includes(n.id)) {
+  for (const n of $("#tP")[0].childNodes) {
+    if (!ids.includes(n.id.replace(/\D+/, ""))) {
       $(n).Remove();
     }
-  });
-  tiles.forEach(async (zxy) => {
-    let { figs, signs, symbs } = await loadTile(zxy);
+  }
+  for (let i = 0; i < tiles.length; i++) {
+    const zxy = tiles[i];
+    let { figs, addrs, roadSigns, symbs } = await loadTile(zxy);
     const start = performance.now();
     const mat = transformMatrix(zxy);
     paint(figs, mat);
-    const id = zxy.join("_");
-    if (!$("#signs" + id).length) {
-      $("#tP").Append(signs);
-      if (context.zoom > 17) {
+    const id = zxy.join("");
+    if (!$("#addrs" + id).length) {
+      $("#tP").Append(addrs);
+    } else {
+      addrs = $("#addrs" + id);
+    }
+    if (context.zoom > 17) {
+      if (!$("#symbs" + id).length) {
         $("#tP").Append(symbs);
+      } else {
+        symbs = $("#symbs" + id);
       }
     } else {
-      signs = $("#signs" + id);
-      symbs = $("#symbs" + id);
+      $("#symbs" + id).Remove();
     }
+
     const cssmat = transformMatrix(zxy, 1);
-    signs.css({
-      "transform": `matrix(${cssmat.join(",")})`,
+    const cssmatText = `matrix(${cssmat.join(",")})`;
+    const scale = 1 / cssmat[0];
+
+    addrs.css({
+      "transform": cssmatText,
     });
     symbs.css({
-      "transform": `matrix(${cssmat.join(",")})`,
+      "transform": cssmatText,
     });
-    $(".sign,.symb").css({
-      "transform": `scale(${1 / cssmat[0]})`,
+    $(".addr,.symb").css({
+      "transform": `scale(${scale})`,
     });
     // 子供だましだけど重い処理を非同期化
     delay(() => {
-      $("#tP .rt").each((s) => {
-        const name = s.innerText;
-        const rect = $(s).boundRect();
-        const dx = rect.x - context.mapWidth / 2;
-        const dy = rect.y - context.mapHeight / 2;
-        const dist = dx * dx + dy * dy;
-        if (nearests[name]) {
-          if (dist > nearests[name][0]) {
-            $(s).css({ opacity: 0 });
-            return;
-          } else {
-            $(nearests[name][1]).css({ opacity: 0 });
+      const tileXY = (x, y) => {
+        return [(x - cssmat[4]) * scale, (y - cssmat[5]) * scale];
+      };
+      const center = tileXY(context.mapWidth / 2, context.mapHeight / 2);
+      const nw = tileXY(0, 0);
+      const se = tileXY(context.mapWidth, context.mapHeight);
+      const distance = (pos) => {
+        const dx = center[0] - pos[0];
+        const dy = center[1] - pos[1];
+        return dx * dx + dy * dy;
+      };
+      for (const name in roadSigns) {
+        for (let i = 0; i < roadSigns[name].length; i++) {
+          const pos = roadSigns[name][i];
+          if (
+            nw[0] < pos[0] &&
+            pos[0] < se[0] &&
+            nw[1] < pos[1] &&
+            pos[1] < se[1]
+          ) {
+            const dist = distance(pos);
+            if (nearests[name]) {
+              if (dist > nearests[name][0]) continue;
+            }
+            const x = pos[0] * cssmat[0] + cssmat[4];
+            const y = pos[1] * cssmat[0] + cssmat[5];
+            const transformTxt = `translate3d(${x}px,${y}px,0px)`;
+            nearests[name] = [dist, transformTxt];
           }
         }
-        $(s).css({ opacity: 1 });
-        nearests[name] = [dist, s];
-      });
+      }
+      if (i == tiles.length - 1) {
+        for (const n of $("#rts")[0].childNodes) {
+          if (!Object.keys(nearests).includes(n.id.replace(/^rt/, ""))) {
+            $(n).Remove();
+          }
+        }
+        for (const name in nearests) {
+          let sign;
+          if (!$("#rts #rt" + name).length) {
+            sign = $(`<span id="rt${name}" class="rt">${name}</span>`);
+            $("#rts").Append(sign);
+          } else {
+            sign = $("#rt" + name);
+          }
+          sign.css({ "transform": nearests[name][1] });
+        }
+      }
     });
 
     const end = performance.now();
     t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
-  });
+  }
 };
 
 const paint = (layers, mat) => {

@@ -10,7 +10,7 @@ const maxBounds = [
   [2.777, 2.46],
 ];
 
-const pin = {
+const pinPath = {
   // その他 co(City Office),go(Government Office), wf(Welfare facility 福祉施設), cf(culture facility),pf(public facility)
   // バス停
   "bs": "M11 13v7l-4 3h10l-4-3v-7M6 7a6 6 0 1012 0A6 6 0 106 7",
@@ -31,7 +31,7 @@ const pin = {
   // 'ct': consts.markerIcon, //constsを定義する最中で、まだconstがないので
 };
 // ビルの形
-const pinOther =
+const pinOtherPath =
   "M3 12l6.8-5.5 6.9 5.4v8.6c0 .8-.7 1.5-1.5 1.5H4.5c-.8 0-1.5-.7-1.5-1.5zm4.6 10v-7.7H12V22M6.5 9V1.3h14.9l.2 20.7-7.3.1M10.8 5.3h6.8m-3.7 4.2h3.7";
 
-export { baseTile, maxBounds, pin, pinOther };
+export { baseTile, maxBounds, pinPath, pinOtherPath };
