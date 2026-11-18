@@ -2,6 +2,7 @@ import $ from "./util/tiny";
 import { draw, mouseevents, setCenter, setZoom, resized, panTo } from "./map/";
 import { localCoordToPix, pixToLocalCoord } from "./map/calc";
 import context from "./util/context";
+import loadingSpinner from "./util/loadingSpinner";
 
 $("#resize").on("click", (e) => {
   $("#m").css({

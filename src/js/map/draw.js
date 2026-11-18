@@ -3,6 +3,7 @@ import { transformMatrix, requiredTiles } from "./calc";
 import loadTile from "./loadTile";
 import { delay, nextFrame } from "../util/delay";
 import $ from "../util/tiny";
+import loadingSpinner from "../util/loadingSpinner";
 
 var ctx;
 
@@ -10,9 +11,7 @@ const init = (canvas) => {
   ctx = canvas.getContext("2d", { alpha: false });
 };
 
-let timerID, que;
-
-let ids;
+let timerID, que, ids, loadingNum;
 
 const t = document.getElementById("time");
 const draw = async () => {
@@ -29,8 +28,10 @@ const draw = async () => {
   if (!(cx && cy && z && w && h)) return;
 
   timerID = 1;
-
+  loadingSpinner.show($("#m"));
   const tiles = requiredTiles(cx, cy, z, w, h);
+  loadingNum = tiles.length;
+
   ids = tiles.map((zxy) => zxy.join(""));
   const nearests = {};
   for (const n of $("#tP")[0].childNodes) {
@@ -133,6 +134,10 @@ const draw = async () => {
           sign.css({ "transform": nearests[name][1] });
           nearests[name][0] = nearests[name][0] / 2;
         }
+      }
+      loadingNum--;
+      if (!loadingNum) {
+        loadingSpinner.hide();
       }
       // });
       const end = performance.now();
