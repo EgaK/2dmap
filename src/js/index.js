@@ -1,21 +1,7 @@
 import $ from "./util/tiny";
-import {
-  init,
-  draw,
-  mouseevents,
-  setCenter,
-  setZoom,
-  resized,
-  panTo,
-} from "./map/";
+import { draw, mouseevents, setCenter, setZoom, resized, panTo } from "./map/";
 import { localCoordToPix, pixToLocalCoord } from "./map/calc";
 import context from "./util/context";
-
-const canvas = $("#a");
-init(canvas[0]);
-setZoom(15);
-setCenter(1.983373, 1.8817);
-resized(400);
 
 $("#resize").on("click", (e) => {
   $("#m").css({

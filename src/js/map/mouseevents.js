@@ -5,7 +5,6 @@ import { setCenter, setZoom, zoomAt } from "./controller";
 import { delay } from "../util/delay";
 
 export default (container) => {
-  container = $(container);
   let tapped;
   let tx, ty;
 

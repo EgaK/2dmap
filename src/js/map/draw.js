@@ -1,5 +1,5 @@
 import context from "../util/context";
-import { scale, transformMatrix, requiredTiles } from "./calc";
+import { transformMatrix, requiredTiles } from "./calc";
 import loadTile from "./loadTile";
 import { delay, nextFrame } from "../util/delay";
 import $ from "../util/tiny";
@@ -11,6 +11,8 @@ const init = (canvas) => {
 };
 
 let timerID, que;
+
+let ids;
 
 const t = document.getElementById("time");
 const draw = async () => {
@@ -28,105 +30,114 @@ const draw = async () => {
 
   timerID = 1;
 
-  ctx.fillStyle = "#f5f0ea";
-  ctx.fillRect(0, 0, w, h);
   const tiles = requiredTiles(cx, cy, z, w, h);
-  const ids = tiles.map((zxy) => zxy.join(""));
+  ids = tiles.map((zxy) => zxy.join(""));
   const nearests = {};
   for (const n of $("#tP")[0].childNodes) {
     if (!ids.includes(n.id.replace(/\D+/, ""))) {
       $(n).Remove();
     }
   }
+  ctx.fillStyle = "#f5f0ea";
+  ctx.fillRect(0, 0, w, h);
+
   for (let i = 0; i < tiles.length; i++) {
     const zxy = tiles[i];
-    let { figs, addrs, roadSigns, symbs } = await loadTile(zxy);
-    const start = performance.now();
-    const mat = transformMatrix(zxy);
-    paint(figs, mat);
-    const id = zxy.join("");
-    if (!$("#addrs" + id).length) {
-      $("#tP").Append(addrs);
-    } else {
-      addrs = $("#addrs" + id);
-    }
-    if (context.zoom > 17) {
-      if (!$("#symbs" + id).length) {
-        $("#tP").Append(symbs);
+    loadTile(zxy).then(({ figs, addrs, roadSigns, symbs }) => {
+      const id = zxy.join("");
+      if (!ids.includes(id)) {
+        // スクロールが急峻でfetchしたデータが現在必要なデータでない場合には描画をキャンセルする。そのためにidsはグローバルな値として定義しておく
+        return;
+      }
+      const start = performance.now();
+      const mat = transformMatrix(zxy);
+      paint(figs, mat);
+      if (!$("#addrs" + id).length) {
+        $("#tP").Append(addrs);
       } else {
-        symbs = $("#symbs" + id);
+        addrs = $("#addrs" + id);
       }
-    } else {
-      $("#symbs" + id).Remove();
-    }
-
-    const cssmat = transformMatrix(zxy, 1);
-    const cssmatText = `matrix(${cssmat.join(",")})`;
-    const scale = 1 / cssmat[0];
-
-    addrs.css({
-      "transform": cssmatText,
-    });
-    symbs.css({
-      "transform": cssmatText,
-    });
-    $(".addr,.symb").css({
-      "transform": `scale(${scale})`,
-    });
-    // 子供だましだけど重い処理を非同期化
-    // delay(() => {
-    const tileXY = (x, y) => {
-      return [(x - cssmat[4]) * scale, (y - cssmat[5]) * scale];
-    };
-    const center = tileXY(context.mapWidth / 2, context.mapHeight / 2);
-    const nw = tileXY(0, 0);
-    const se = tileXY(context.mapWidth, context.mapHeight);
-    const distance = (pos) => {
-      const dx = center[0] - pos[0];
-      const dy = center[1] - pos[1];
-      return dx * dx + dy * dy;
-    };
-    for (const name in roadSigns) {
-      for (let i = 0; i < roadSigns[name].length; i++) {
-        const pos = roadSigns[name][i];
-        if (
-          nw[0] < pos[0] &&
-          pos[0] < se[0] &&
-          nw[1] < pos[1] &&
-          pos[1] < se[1]
-        ) {
-          const dist = distance(pos);
-          if (nearests[name]) {
-            if (dist > nearests[name][0]) continue;
-          }
-          const x = pos[0] * cssmat[0] + cssmat[4];
-          const y = pos[1] * cssmat[0] + cssmat[5];
-          const transformTxt = `translate3d(${x}px,${y}px,0px)`;
-          nearests[name] = [dist, transformTxt];
-        }
-      }
-    }
-    if (i == tiles.length - 1) {
-      for (const n of $("#rts")[0].childNodes) {
-        if (!Object.keys(nearests).includes(n.id.replace(/^rt/, ""))) {
-          $(n).Remove();
-        }
-      }
-      for (const name in nearests) {
-        let sign;
-        if (!$("#rts #rt" + name).length) {
-          sign = $(`<span id="rt${name}" class="rt">${name}</span>`);
-          $("#rts").Append(sign);
+      if (context.zoom > 17) {
+        if (!$("#symbs" + id).length) {
+          $("#tP").Append(symbs);
         } else {
-          sign = $("#rt" + name);
+          symbs = $("#symbs" + id);
         }
-        sign.css({ "transform": nearests[name][1] });
+      } else {
+        $("#symbs" + id).Remove();
       }
-    }
-    // });
 
-    const end = performance.now();
-    t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+      const cssmat = transformMatrix(zxy, 1);
+      const cssmatText = `matrix(${cssmat.join(",")})`;
+      const [scale, , , , shiftX, shiftY] = cssmat;
+
+      addrs.css({
+        "transform": cssmatText,
+      });
+      symbs.css({
+        "transform": cssmatText,
+      });
+      // 画面上に複数のz値が混在しないことを前提で一括した値を設定
+      $("#tP").css({ "--s": 1 / scale });
+
+      // $("#addrs" + id + " .addr,#symbs" + id + " .symb").css({
+      //   "transform": `scale(${1 / scale})`,
+      // });
+      // 子供だましだけど重い処理を非同期化
+      // delay(() => {
+      const tileXY = (x, y) => {
+        return [(x - shiftX) / scale, (y - shiftY) / scale];
+      };
+      const center = tileXY(context.mapWidth / 2, context.mapHeight / 2);
+      const nw = tileXY(0, 0);
+      const se = tileXY(context.mapWidth, context.mapHeight);
+      const distance = (pos) => {
+        const dx = center[0] - pos[0];
+        const dy = center[1] - pos[1];
+        return dx * dx + dy * dy;
+      };
+      for (const name in roadSigns) {
+        for (let i = 0; i < roadSigns[name].length; i++) {
+          const pos = roadSigns[name][i];
+          if (
+            nw[0] < pos[0] &&
+            pos[0] < se[0] &&
+            nw[1] < pos[1] &&
+            pos[1] < se[1]
+          ) {
+            const dist = distance(pos);
+            if (nearests[name]) {
+              if (dist > nearests[name][0]) continue;
+            }
+            const x = pos[0] * scale + shiftX;
+            const y = pos[1] * scale + shiftY;
+            const transformTxt = `translate3d(${x}px,${y}px,0px)`;
+            nearests[name] = [dist, transformTxt];
+          }
+        }
+      }
+      if (i == tiles.length - 1) {
+        for (const n of $("#rts")[0].childNodes) {
+          if (!Object.keys(nearests).includes(n.id.replace(/^rt/, ""))) {
+            $(n).Remove();
+          }
+        }
+        for (const name in nearests) {
+          let sign;
+          if (!$("#rts #rt" + name).length) {
+            sign = $(`<span id="rt${name}" class="rt">${name}</span>`);
+            $("#rts").Append(sign);
+          } else {
+            sign = $("#rt" + name);
+          }
+          sign.css({ "transform": nearests[name][1] });
+          nearests[name][0] = nearests[name][0] / 2;
+        }
+      }
+      // });
+      const end = performance.now();
+      t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
+    });
   }
   timerID = 0;
   if (que) {
@@ -142,6 +153,8 @@ const paint = (layers, mat) => {
   //マスク
   ctx.beginPath();
   ctx.rect(0, 0, 4096, 4096);
+  // ctx.fillStyle = "#f5f0ea";
+  // ctx.fill();
   // ctx.strokeStyle = "#f00";
   // ctx.lineWidth = 10 / mat[0];
   // ctx.stroke();
@@ -169,14 +182,14 @@ const paint = (layers, mat) => {
       ctx.fill(layer.path);
     } else {
       ctx.setLineDash(dash);
-      // ctx.lineCap = "round";
-      // ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth / mat[0];
       ctx.stroke(layer.path);
       if (prop.Layer == "t") {
         ctx.setLineDash([20, 20]);
-        // ctx.lineCap = "butt";
+        ctx.lineCap = "butt";
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = lineWidth / mat[0] / 2;
         ctx.stroke(layer.path);

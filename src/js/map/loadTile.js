@@ -47,7 +47,7 @@ export default async (zxy) => {
             desc = desc.replace("S", "西肥バス").replace("W", "昭和バス");
           }
           if (cat == "hp" && desc) {
-            desc = desc.replace(/\s/g, "科 ");
+            desc = desc.replace(/([^\s科]+)(?=\s|$)/g, "$1科");
           }
           const pathd = pinPath[cat] || pinOtherPath;
           const dom = $(
@@ -60,8 +60,7 @@ export default async (zxy) => {
             .on("click", (e) => {
               const content =
                 "<h3>" + name + "</h3>" + (desc ? "<p>" + desc + "</p>" : "");
-              $("#iw").html(content);
-              $("#iw")[0].showPopover({ source: e.target });
+              $("#iw").html(content)[0].showPopover({ source: e.target });
             });
           symbs.Append(dom);
         } else {
