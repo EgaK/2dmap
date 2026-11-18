@@ -7,10 +7,14 @@ import { setCenter, setZoom, resized, panTo } from "./controller";
 const container = $("#m");
 mouseevents(container);
 
+const mapwrapper = $('<div id="c">');
+container.Append(mapwrapper);
 const canvas = $('<canvas id="a">');
-container.Append(canvas);
+mapwrapper.Append(canvas);
+mapwrapper.Append('<div id="rts"></div><div id="tP"></div>');
+
 container.Append(
-  '<div id="rts"></div><div id="tP"></div><div id="iw" popover></div><svg id="x"><path d="M5 12h14m-7-7v14" /></svg>',
+  '<div id="iw" popover></div><svg id="x"><path d="M5 12h14m-7-7v14" /></svg>',
 );
 
 init(canvas[0]);

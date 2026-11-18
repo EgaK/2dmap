@@ -48,17 +48,24 @@ const setZoom = (z) => {
 };
 
 const resized = (h) => {
-  const w = $("#m").boundRect().width;
-  context.mapWidth = w;
-  context.mapHeight = h;
-  const canvas = $("#a");
-  $("#a").css({
-    width: context.mapWidth + "px",
-    height: context.mapHeight + "px",
-  });
-  canvas[0].width = w * 2;
-  canvas[0].height = h * 2;
-  draw();
+  const w = $("#m")
+    .css({
+      height: h + "px",
+    })
+    .boundRect().width;
+  const timer = context.mapHeight > h ? 1000 : 0;
+  delay(() => {
+    context.mapWidth = w;
+    context.mapHeight = h;
+    const canvas = $("#a");
+    $("#c > *").css({
+      width: context.mapWidth + "px",
+      height: context.mapHeight + "px",
+    });
+    canvas[0].width = w * 2;
+    canvas[0].height = h * 2;
+    draw();
+  }, timer);
 };
 
 const zoomAt = (x, y, z) => {

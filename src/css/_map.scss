@@ -12,12 +12,24 @@ canvas {
     height: 400px; /* 親の高さが必要 */
     overflow: hidden;
     border: 1px solid #000;
+    transition: height 1s;
+}
+#c {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 #a {
     position: absolute;
 }
-#tP {
+#tP,
+#rts {
     position: absolute;
+    width: 100%;
+    height: 100%;
     --s: 10;
 }
 #x {
