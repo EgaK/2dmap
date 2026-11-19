@@ -1,9 +1,5 @@
 @use "vars";
 
-canvas {
-    cursor: grab;
-}
-
 #m {
     // display: flex;
     // justify-content: center; /* 左右の中央 */
@@ -13,7 +9,9 @@ canvas {
     overflow: hidden;
     border: 1px solid #000;
     transition: height 1s;
+    cursor: grab;
 }
+
 #c {
     position: absolute;
     inset: 0;
@@ -22,16 +20,19 @@ canvas {
     justify-content: center;
     align-items: center;
 }
+
 #a {
     position: absolute;
 }
-#tP,
+
+#txy,
 #rts {
     position: absolute;
     width: 100%;
     height: 100%;
     --s: 10;
 }
+
 #x {
     position: absolute;
     z-index: 5;
@@ -50,7 +51,7 @@ canvas {
 
 .addr {
     transform-origin: 0 0;
-    // content-visibility: auto;
+    content-visibility: auto;
     // display: none;
     &.d,
     &.c {
@@ -78,19 +79,32 @@ canvas {
 .symb {
     position: absolute;
     border: none;
-    svg {
-        width: 18px;
-        height: 18px;
-    }
     background: #fff;
     border-radius: 50%;
     padding: 4px;
     box-shadow: 1px 1px 4px #6665;
 }
 
+// 詳細度を上げるためにわざわざ#txyを指定してる
+#txy .symb {
+    cursor: pointer;
+    // content-visibility: auto;
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
 .addr,
 .symb {
     transform: scale(var(--s));
+}
+
+#cxy {
+    pointer-events: none;
+    & > * {
+        pointer-events: auto;
+    }
 }
 
 #iw {
@@ -102,4 +116,91 @@ canvas {
     position-area: top;
     position-try-fallbacks: flip-block;
     container-type: anchored;
+}
+
+#f,
+#g,
+#cr {
+    position: absolute;
+
+    bottom: 20px;
+    font-size: 12px;
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    background: vars.$White;
+    border-radius: 12px;
+    cursor: pointer;
+
+    svg {
+        stroke: vars.$AccentColor;
+    }
+
+    .a & {
+        display: none;
+    }
+}
+
+#f {
+    right: 40px;
+}
+
+#g {
+    left: 10px;
+}
+
+#cr {
+    right: 10px;
+    padding: 0 10px 0 0;
+    transition: 0.5s ease-out;
+    max-width: 250px;
+
+    &.s {
+        max-width: 25px;
+    }
+
+    .icon {
+        margin: 0 10px 0 0;
+    }
+}
+
+@keyframes rp {
+    0% {
+        scale: 0.1;
+        opacity: 1;
+    }
+
+    95% {
+        scale: 1.3;
+        opacity: 0;
+    }
+
+    to {
+        scale: 0.2;
+        opacity: 0;
+    }
+}
+
+#here {
+    position: absolute;
+    border-radius: 8px;
+    width: 16px;
+    height: 16px;
+    margin: -8px;
+    background: vars.$AccentColor;
+    border: 1px solid vars.$White;
+
+    &::before {
+        content: "";
+        display: block;
+        position: absolute;
+
+        animation: rp 1.5s ease-in-out 5;
+        border-radius: 100px;
+        height: 100px;
+        width: 100px;
+        inset: -46px;
+        opacity: 0;
+        border: 3px solid vars.$AccentColor;
+    }
 }

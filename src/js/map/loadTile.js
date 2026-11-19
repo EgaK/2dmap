@@ -51,7 +51,7 @@ export default async (zxy) => {
           }
           const pathd = pinPath[cat] || pinOtherPath;
           const dom = $(
-            `<button class="symb"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></button>`,
+            `<span class="symb"><svg viewBox="0 0 24 24"><path d="${pathd}"/></svg></span>`,
           )
             .css({
               "left": x + "px",

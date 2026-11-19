@@ -34,6 +34,7 @@ const setCenter = (x, y) => {
     $("#centery").html(y.toFixed(8));
   }
   draw();
+  boundChanged();
 };
 
 const setZoom = (z) => {
@@ -45,6 +46,8 @@ const setZoom = (z) => {
     $("#zoom").html(z.toFixed(8));
   }
   draw();
+  // boundChanged();
+  // 中心が変更されずにズームだけ変わることは「多分」ないので省略
 };
 
 const resized = (h) => {
@@ -88,7 +91,7 @@ const panTo = (x, y) => {
   clearTimeout(panID);
   let dx = -(x - context.centerX) * context.scale;
   let dy = -(y - context.centerY) * context.scale;
-  const target = $("#a, #tP");
+  const target = $("#a, #txy");
 
   if (isInBounds(x, y)) {
     transformDom(target, dx, dy, 1, ".5s");
@@ -113,6 +116,13 @@ const panTo = (x, y) => {
         transformDom(target);
       }, 300);
     }, 300);
+  }
+};
+
+const boundChanged = () => {
+  for (const id in context.markers) {
+    const { x, y, dom } = context.markers[id];
+    transformDom(dom, x, y);
   }
 };
 

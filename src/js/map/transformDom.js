@@ -6,11 +6,11 @@ export default (dom, x, y, isPix, t = "") => {
   }
   if (x || t) {
     dom.css({
-      willChange: "translate",
-      translate: x + "px " + y + "px",
+      // willChange: "transform",
+      transform: `translate3d(${x}px,${y}px,0px)`,
       transition: t,
     });
   } else {
-    dom.css({ translate: "", transition: "" });
+    dom.css({ transform: "", transition: "" });
   }
 };

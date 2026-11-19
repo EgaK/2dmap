@@ -14,7 +14,7 @@ const init = (canvas) => {
 let timerID, que, ids, loadingNum;
 
 const t = document.getElementById("time");
-const draw = async () => {
+const draw = () => {
   if (timerID) {
     que = 1;
     return;
@@ -27,6 +27,8 @@ const draw = async () => {
   const h = context.mapHeight * 2;
   if (!(cx && cy && z && w && h)) return;
 
+  const start = performance.now();
+
   timerID = 1;
   loadingSpinner.show($("#m"));
   const tiles = requiredTiles(cx, cy, z, w, h);
@@ -34,7 +36,7 @@ const draw = async () => {
 
   ids = tiles.map((zxy) => zxy.join(""));
   const nearests = {};
-  for (const n of $("#tP")[0].childNodes) {
+  for (const n of $("#txy")[0].childNodes) {
     if (!ids.includes(n.id.replace(/\D+/, ""))) {
       $(n).Remove();
     }
@@ -50,17 +52,16 @@ const draw = async () => {
         // スクロールが急峻でfetchしたデータが現在必要なデータでない場合には描画をキャンセルする。そのためにidsはグローバルな値として定義しておく
         return;
       }
-      const start = performance.now();
       const mat = transformMatrix(zxy);
       paint(figs, mat);
       if (!$("#addrs" + id).length) {
-        $("#tP").Append(addrs);
+        $("#txy").Append(addrs);
       } else {
         addrs = $("#addrs" + id);
       }
       if (context.zoom > 17) {
         if (!$("#symbs" + id).length) {
-          $("#tP").Append(symbs);
+          $("#txy").Append(symbs);
         } else {
           symbs = $("#symbs" + id);
         }
@@ -79,11 +80,8 @@ const draw = async () => {
         "transform": cssmatText,
       });
       // 画面上に複数のz値が混在しないことを前提で一括した値を設定
-      $("#tP").css({ "--s": 1 / scale });
+      $("#txy").css({ "--s": 1 / scale });
 
-      // $("#addrs" + id + " .addr,#symbs" + id + " .symb").css({
-      //   "transform": `scale(${1 / scale})`,
-      // });
       // 子供だましだけど重い処理を非同期化
       // delay(() => {
       const tileXY = (x, y) => {
@@ -138,16 +136,17 @@ const draw = async () => {
       loadingNum--;
       if (!loadingNum) {
         loadingSpinner.hide();
+        timerID = 0;
+        if (que) {
+          que = 0;
+          draw();
+        }
+        const end = performance.now();
+        t.innerText =
+          "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
       }
       // });
-      const end = performance.now();
-      t.innerText = "地図描画時間：" + ((end - start) * 1e3).toFixed(3) + "μs";
     });
-  }
-  timerID = 0;
-  if (que) {
-    que = 0;
-    draw();
   }
 };
 
